@@ -4,8 +4,14 @@ const CACHE_NAME = 'expense-tracker-v1';
 // 需要缓存的资源列表
 const urlsToCache = [
   '.',
-  'expense-tracker.html',
+  'index.html',
   'manifest.json',
+  'service-worker.js',
+  'icon/favicon.ico',
+  'icon/favicon-16x16.png',
+  'icon/favicon-32x32.png',
+  'icon/android-chrome-192x192.png',
+  'icon/android-chrome-512x512.png',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'
 ];

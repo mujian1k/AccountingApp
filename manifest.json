@@ -2,21 +2,39 @@
   "name": "记账助手",
   "short_name": "记账",
   "description": "简单易用的记账助手",
-  "start_url": ".",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#6366F1",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%236366F1'/%3E%3Cpath d='M96 16C54.1 16 20 48.1 20 88c0 40.5 31.8 74.1 73.7 77.9V176H92c-6.6 0-12 5.4-12 12s5.4 12 12 12h8c6.6 0 12-5.4 12-12v-10.1c41.9-3.8 73.7-37.4 73.7-77.9 0-39.9-34.1-72-76-72zm0 140.8V164h-4v-8.2C51.9 151.8 32 124 32 88c0-35.3 27.2-64 64-64s64 28.7 64 64c0 36-19.9 63.8-56 68.8z' fill='white'/%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
+      "src": "icon/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%236366F1'/%3E%3Cpath d='M256 42.7C142.2 42.7 50.7 133.4 50.7 246c0 108.3 85.7 196.8 196.8 205.2V473c0 17.7 14.4 32 32 32s32-14.3 32-32v-21.8c111.1-8.4 196.8-96.9 196.8-205.2 0-112.6-91.5-203.3-205.3-203.3zM256 405.3V370c0-8.8-7.2-16-16-16h-5.3c-118.6-9.8-212.5-102.6-212.5-219 0-97.2 78.8-176 176-176s176 78.8 176 176c0 116.4-93.9 209.2-212.5 219H272c8.8 0 16 7.2 16 16z' fill='white'/%3E%3C/svg%3E",
+      "src": "icon/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
