@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6366F1">
+  <meta name="description" content="简单易用的记账助手">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="记账助手">
+  <title>记账助手</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%236366F1'/%3E%3Cpath d='M96 16C54.1 16 20 48.1 20 88c0 40.5 31.8 74.1 73.7 77.9V176H92c-6.6 0-12 5.4-12 12s5.4 12 12 12h8c6.6 0 12-5.4 12-12v-10.1c41.9-3.8 73.7-37.4 73.7-77.9 0-39.9-34.1-72-76-72zm0 140.8V164h-4v-8.2C51.9 151.8 32 124 32 88c0-35.3 27.2-64 64-64s64 28.7 64 64c0 36-19.9 63.8-56 68.8z' fill='white'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%236366F1'/%3E%3Cpath d='M96 16C54.1 16 20 48.1 20 88c0 40.5 31.8 74.1 73.7 77.9V176H92c-6.6 0-12 5.4-12 12s5.4 12 12 12h8c6.6 0 12-5.4 12-12v-10.1c41.9-3.8 73.7-37.4 73.7-77.9 0-39.9-34.1-72-76-72zm0 140.8V164h-4v-8.2C51.9 151.8 32 124 32 88c0-35.3 27.2-64 64-64s64 28.7 64 64c0 36-19.9 63.8-56 68.8z' fill='white'/%3E%3C/svg%3E">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366F1',
+            secondary: '#8B5CF6',
+            accent: '#EC4899',
+            expense: '#F59E0B',
+            income: '#3B82F6',
+            clear: '#9CA3AF',
+            incomeTotal: '#10B981'
+          },
+          animation: {
+            'bounce-circle': 'bounce 0.5s ease-in-out',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tag-btn.active {
+      color: white;
+      border-color: transparent;
+    }
+    .period-btn.active {
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      color: white;
+    }
+    .keypad-btn:active {
+      transform: scale(0.95);
+    }
+    .tag-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .tag-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .circle-input {
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+    }
+    .circle-normal-expense {
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    }
+    .circle-normal-income {
+      background: linear-gradient(135deg, #10B981, #059669);
+    }
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border-radius: 8px;
+      font-size: 16px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-10px);
+      }
+      60% {
+        transform: translateY(-5px);
+      }
+    }
+    .bounce-animation {
+      animation: bounce 0.5s ease-in-out;
+    }
+    .record-swipe {
+      position: relative;
+      overflow: hidden;
+    }
+    .record-content {
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 2;
+      background: white;
+    }
+    .record-delete {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 80px;
+      background: #EF4444;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      border-top-right-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col shadow-xl relative">
+    <header class="bg-gradient-to-r from-primary to-secondary p-4 text-white">
+      <div class="flex justify-between items-center">
+        <h1 class="text-xl font-bold">记账助手</h1>
+        <button id="settingsBtn" class="text-white hover:text-white/80">
+          <i class="fa fa-cog text-xl"></i>
+        </button>
+      </div>
+    </header>
+
+    <div id="homePage" class="flex-grow flex flex-col p-4 pb-20">
+      <div class="flex justify-center gap-2 mb-4 items-center">
+        <button class="period-btn active px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 transition-all" data-period="day">日</button>
+        <button class="period-btn px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 transition-all" data-period="week">周</button>
+        <button class="period-btn px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 transition-all" data-period="month">月</button>
+        <button class="period-btn px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 transition-all" data-period="year">年</button>
+        <button id="totalTypeBtn" class="px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 transition-all ml-2">
+          收/支
+        </button>
+      </div>
+
+      <div class="flex justify-center mb-6">
+        <div id="circle" class="w-48 h-48 rounded-full circle-normal-expense flex flex-col items-center justify-center text-white shadow-2xl transition-all duration-300">
+          <p class="text-sm opacity-80 mb-1" id="circleLabel">支出总计</p>
+          <h2 id="circleAmount" class="text-3xl font-bold">¥0.00</h2>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <p class="text-sm text-gray-500 mb-2">选择标签</p>
+        <div id="tagContainer" class="flex gap-2 overflow-x-auto tag-scroll pb-2">
+        </div>
+        <div id="customTagInput" class="mt-2 hidden">
+          <input type="text" id="customTagText" placeholder="输入自定义标签名称" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <div class="grid grid-cols-4 gap-2 flex-grow">
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="7">7</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="8">8</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="9">9</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="delete">
+            ←
+          </button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="4">4</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="5">5</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="6">6</button>
+          <button id="incomeBtn" class="keypad-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center">
+            收入
+          </button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="1">1</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="2">2</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="3">3</button>
+          <button id="expenseBtn" class="keypad-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center row-span-2">
+            支出
+          </button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all col-span-2" data-key="0">0</button>
+          <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key=".">.</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="recordsPage" class="flex-grow flex flex-col p-4 pb-24 hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-800">全部记录</h2>
+      </div>
+      
+      <!-- 筛选控件 -->
+      <div class="mb-4">
+        <div class="grid grid-cols-3 gap-2 mb-2">
+          <select id="yearFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="all">全部年份</option>
+            <!-- 年份选项将动态生成 -->
+          </select>
+          <select id="monthFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="all">全部月份</option>
+            <option value="0">一月</option>
+            <option value="1">二月</option>
+            <option value="2">三月</option>
+            <option value="3">四月</option>
+            <option value="4">五月</option>
+            <option value="5">六月</option>
+            <option value="6">七月</option>
+            <option value="7">八月</option>
+            <option value="8">九月</option>
+            <option value="9">十月</option>
+            <option value="10">十一月</option>
+            <option value="11">十二月</option>
+          </select>
+          <select id="tagFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="all">全部标签</option>
+            <!-- 标签选项将动态生成 -->
+          </select>
+        </div>
+        <button id="clearFilterBtn" class="w-full px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition-colors">
+          清除筛选
+        </button>
+      </div>
+      
+      <!-- 合计显示 -->
+      <div id="recordsSummary" class="bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center">
+        <div class="text-center flex-1">
+          <div class="text-xs text-gray-500">支出总计</div>
+          <div id="expenseSummary" class="font-bold text-expense">¥0.00</div>
+        </div>
+        <div class="text-center flex-1 border-x border-gray-200">
+          <div class="text-xs text-gray-500">收入总计</div>
+          <div id="incomeSummary" class="font-bold text-income">¥0.00</div>
+        </div>
+        <div class="text-center flex-1">
+          <div class="text-xs text-gray-500">总合计</div>
+          <div id="totalSummary" class="font-bold text-primary">¥0.00</div>
+        </div>
+      </div>
+      
+      <div id="allRecordsList" class="flex-grow overflow-y-auto space-y-2 max-h-[calc(100vh-380px)]">
+        <p class="text-sm text-gray-400 text-center py-4">暂无记录</p>
+      </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 max-w-md mx-auto">
+      <div class="flex">
+        <button id="homeTab" class="flex-1 py-3 text-center text-primary border-t-2 border-primary">
+          <i class="fa fa-home text-xl"></i>
+          <p class="text-xs mt-1">主页</p>
+        </button>
+        <button id="recordsTab" class="flex-1 py-3 text-center text-gray-500">
+          <i class="fa fa-list text-xl"></i>
+          <p class="text-xs mt-1">记录</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[80vh] flex flex-col">
+      <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-800">设置</h3>
+        <button id="closeSettings" class="text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-700">标签管理</span>
+          <button id="tagManageBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            管理
+          </button>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-700">清空所有数据</span>
+          <button id="clearDataBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+            清空
+          </button>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-700">导出数据</span>
+          <button id="exportDataBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            导出
+          </button>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-700">导入数据</span>
+          <input type="file" id="importDataFile" accept=".json" class="hidden">
+          <button id="importDataBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            导入
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tagManageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[80vh] flex flex-col">
+      <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-800">标签管理</h3>
+        <button id="closeTagManage" class="text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="p-4 space-y-4 overflow-y-auto flex-grow">
+        <div class="mb-4">
+          <h4 class="text-sm font-medium text-gray-700 mb-2">固定标签</h4>
+          <div id="pinnedTagsList" class="space-y-2">
+            <!-- 固定标签列表 -->
+          </div>
+        </div>
+        <div class="mb-4">
+          <h4 class="text-sm font-medium text-gray-700 mb-2">其他标签</h4>
+          <div id="otherTagsList" class="space-y-2">
+            <!-- 其他标签列表 -->
+          </div>
+        </div>
+        <div class="pt-4 border-t border-gray-200">
+          <h4 class="text-sm font-medium text-gray-700 mb-2">添加新标签</h4>
+          <div class="flex gap-2">
+            <input type="text" id="newTagName" placeholder="标签名称" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <button id="addNewTagBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+              添加
+            </button>
+          </div>
+        </div>
+        <!-- 颜色选择栏 -->
+        <div class="pt-4 border-t border-gray-200">
+          <div class="flex justify-between items-center mb-2">
+            <h4 class="text-sm font-medium text-gray-700">快速颜色选择</h4>
+            <span id="selectedTagForColor" class="text-xs text-gray-500">请选择标签</span>
+          </div>
+          <div id="presetColors" class="flex gap-2 overflow-x-auto pb-2">
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #EF4444;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #F59E0B;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #EAB308;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #10B981;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #06B6D4;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #3B82F6;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #8B5CF6;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #EC4899;"></button>
+            <button class="w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-400 transition-all" style="background-color: #6B7280;"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">
+  </div>
+
+  <script>
+    let currentInput = '0';
+    let selectedTag = null;
+    let currentPeriod = 'day';
+    let currentType = 'expense';
+    let displayType = 'expense'; // 用于显示收入或支出总计
+    let records = JSON.parse(localStorage.getItem('expenseRecords')) || [];
+    let customTags = JSON.parse(localStorage.getItem('customTags')) || [];
+    let tagUsageCount = JSON.parse(localStorage.getItem('tagUsageCount')) || {};
+    let tagColors = JSON.parse(localStorage.getItem('tagColors')) || {};
+    let pinnedTags = JSON.parse(localStorage.getItem('pinnedTags')) || [];
+
+    const defaultTags = ['吃喝', '玩乐', '购物', '交通', '医疗', '教育', '其他'];
+    const defaultTagIcons = {
+      '吃喝': '<i class="fa fa-utensils"></i>',
+      '玩乐': '<i class="fa fa-gamepad"></i>',
+      '购物': '<i class="fa fa-shopping-cart"></i>',
+      '交通': '<i class="fa fa-car"></i>',
+      '医疗': '<i class="fa fa-medkit"></i>',
+      '教育': '<i class="fa fa-book"></i>',
+      '其他': '<i class="fa fa-tag"></i>'
+    };
+    const defaultTagColors = {
+      '吃喝': '#F59E0B',
+      '玩乐': '#EC4899',
+      '购物': '#8B5CF6',
+      '交通': '#3B82F6',
+      '医疗': '#EF4444',
+      '教育': '#10B981',
+      '其他': '#6B7280'
+    };
+
+    const circle = document.getElementById('circle');
+    const circleAmountEl = document.getElementById('circleAmount');
+    const circleLabelEl = document.getElementById('circleLabel');
+    const tagContainer = document.getElementById('tagContainer');
+    const customTagInput = document.getElementById('customTagInput');
+    const customTagText = document.getElementById('customTagText');
+    const allRecordsList = document.getElementById('allRecordsList');
+    const homePage = document.getElementById('homePage');
+    const recordsPage = document.getElementById('recordsPage');
+    const homeTab = document.getElementById('homeTab');
+    const recordsTab = document.getElementById('recordsTab');
+    const expenseBtn = document.getElementById('expenseBtn');
+    const incomeBtn = document.getElementById('incomeBtn');
+
+    const toast = document.getElementById('toast');
+    const totalTypeBtn = document.getElementById('totalTypeBtn');
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1000);
+    }
+
+    function formatMoney(amount) {
+      const num = parseFloat(amount);
+      if (isNaN(num)) {
+        return '¥0.00';
+      }
+      return '¥' + num.toFixed(2);
+    }
+
+    function isValidNumber(input) {
+      const num = parseFloat(input);
+      return !isNaN(num) && num > 0 && input !== '0' && input !== '0.' && input !== '.' && input !== '';
+    }
+
+    function isValidDisplay(input) {
+      const num = parseFloat(input);
+      return !isNaN(num) && input !== '0.' && input !== '.' && input !== '';
+    }
+
+    function updateCircleDisplay() {
+      if (currentInput !== '0' && isValidDisplay(currentInput)) {
+        // 输入中状态，显示黄色
+        circle.classList.remove('circle-normal-income', 'circle-normal-expense');
+        circle.classList.add('circle-input');
+        circleLabelEl.textContent = '输入中...';
+        circleAmountEl.textContent = formatMoney(currentInput);
+      } else {
+        // 显示总计状态
+        circle.classList.remove('circle-input');
+        updateTotalAmount();
+      }
+    }
+
+    function bounceCircle() {
+      circle.classList.add('bounce-animation');
+      setTimeout(() => {
+        circle.classList.remove('bounce-animation');
+      }, 500);
+    }
+
+    function updateTotalAmount() {
+      const now = new Date();
+      let filteredRecords = records.filter(record => {
+        const recordDate = new Date(record.date);
+        
+        switch (currentPeriod) {
+          case 'day':
+            return recordDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return recordDate >= weekAgo;
+          case 'month':
+            return recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
+          case 'year':
+            return recordDate.getFullYear() === now.getFullYear();
+          default:
+            return true;
+        }
+      });
+
+      const expenseTotal = filteredRecords
+        .filter(record => record.type === 'expense')
+        .reduce((sum, record) => sum + parseFloat(record.amount), 0);
+      
+      const incomeTotal = filteredRecords
+        .filter(record => record.type === 'income')
+        .reduce((sum, record) => sum + parseFloat(record.amount), 0);
+
+      if (displayType === 'expense') {
+        circleAmountEl.textContent = formatMoney(expenseTotal);
+        circleLabelEl.textContent = '支出总计';
+        circle.classList.remove('circle-normal-income');
+        circle.classList.add('circle-normal-expense');
+      } else {
+        circleAmountEl.textContent = formatMoney(incomeTotal);
+        circleLabelEl.textContent = '收入总计';
+        circle.classList.remove('circle-normal-expense');
+        circle.classList.add('circle-normal-income');
+      }
+    }
+
+    function toggleDisplayType() {
+      displayType = displayType === 'expense' ? 'income' : 'expense';
+      updateTotalAmount();
+    }
+
+    function getSortedTags() {
+      const allTags = [...defaultTags, ...customTags];
+      const sortedTags = allTags.sort((a, b) => {
+        // 优先显示固定标签
+        const isAPinned = pinnedTags.includes(a);
+        const isBPinned = pinnedTags.includes(b);
+        if (isAPinned && !isBPinned) return -1;
+        if (!isAPinned && isBPinned) return 1;
+        
+        // 固定标签按固定顺序显示，其他标签按使用频率排序
+        if (isAPinned && isBPinned) {
+          return pinnedTags.indexOf(a) - pinnedTags.indexOf(b);
+        }
+        
+        const countA = tagUsageCount[a] || 0;
+        const countB = tagUsageCount[b] || 0;
+        return countB - countA;
+      });
+      return sortedTags;
+    }
+
+    function getTagIcon(tag) {
+      // 默认标签不显示图标，只显示文字
+      if (defaultTags.includes(tag)) {
+        return '';
+      }
+      return defaultTagIcons[tag] || '<i class="fa fa-tag"></i>';
+    }
+
+    function getTagColor(tag) {
+      if (tagColors[tag]) {
+        return tagColors[tag];
+      }
+      return defaultTagColors[tag] || '#6366F1';
+    }
+
+    // RGB转十六进制颜色
+    function rgbToHex(rgb) {
+      if (rgb.startsWith('#')) {
+        return rgb;
+      }
+      const result = rgb.match(/\d+/g);
+      if (!result || result.length < 3) {
+        return rgb;
+      }
+      const r = parseInt(result[0]);
+      const g = parseInt(result[1]);
+      const b = parseInt(result[2]);
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+    
+    function setTagColor(tag, color) {
+      tagColors[tag] = color;
+      localStorage.setItem('tagColors', JSON.stringify(tagColors));
+    }
+
+    function toggleTagPin(tag) {
+      const index = pinnedTags.indexOf(tag);
+      if (index > -1) {
+        pinnedTags.splice(index, 1);
+      } else {
+        pinnedTags.push(tag);
+      }
+      localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+      renderTagManagement();
+      renderTags();
+    }
+
+    function deleteTag(tag) {
+      // 检查是否有记录引用了这个标签
+      const recordsWithTag = records.filter(record => record.tag === tag);
+      const hasReferences = recordsWithTag.length > 0;
+      
+      // 如果有引用，提示用户
+      if (hasReferences) {
+        if (!confirm(`检测到有${recordsWithTag.length}条记录使用了该标签，删除后这些记录的标签将变为"无标签"。确定要删除吗？`)) {
+          return;
+        }
+        
+        // 更新所有引用该标签的记录
+        records.forEach(record => {
+          if (record.tag === tag) {
+            record.tag = ''; // 设置为无标签
+          }
+        });
+        localStorage.setItem('expenseRecords', JSON.stringify(records));
+      }
+      
+      // 从所有相关存储中移除标签
+      // 移除默认标签引用
+      const defaultIndex = defaultTags.indexOf(tag);
+      if (defaultIndex > -1) {
+        defaultTags.splice(defaultIndex, 1);
+      }
+      
+      // 移除自定义标签引用
+      customTags = customTags.filter(t => t !== tag);
+      
+      // 移除其他相关数据
+      delete tagUsageCount[tag];
+      delete tagColors[tag];
+      const pinnedIndex = pinnedTags.indexOf(tag);
+      if (pinnedIndex > -1) {
+        pinnedTags.splice(pinnedIndex, 1);
+      }
+      
+      // 保存到localStorage
+      localStorage.setItem('customTags', JSON.stringify(customTags));
+      localStorage.setItem('tagUsageCount', JSON.stringify(tagUsageCount));
+      localStorage.setItem('tagColors', JSON.stringify(tagColors));
+      localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+      
+      renderTagManagement();
+      renderTags();
+      updateAllRecords(); // 更新记录列表
+      updateTotalAmount(); // 更新总计
+      showToast('标签已删除');
+    }
+
+    function addNewTag(name) {
+      if (!name || name.trim() === '') {
+        showToast('标签名称不能为空');
+        return;
+      }
+      
+      if (defaultTags.includes(name) || customTags.includes(name)) {
+        showToast('标签已存在');
+        return;
+      }
+      
+      customTags.push(name);
+      // 使用默认颜色
+      setTagColor(name, '#6366F1');
+      localStorage.setItem('customTags', JSON.stringify(customTags));
+      
+      // 清空输入框
+      document.getElementById('newTagName').value = '';
+      
+      renderTagManagement();
+      renderTags();
+      showToast('标签已添加');
+    }
+
+    function renderTags() {
+      const sortedTags = getSortedTags();
+      tagContainer.innerHTML = sortedTags.map(tag => {
+        const color = getTagColor(tag);
+        return `
+        <button class="tag-btn flex-shrink-0 px-4 py-2 rounded-full border-2 border-gray-300 text-sm text-gray-600 transition-all" data-tag="${tag}" style="color: ${color}; border-color: ${color};">
+          ${getTagIcon(tag)}${tag}
+        </button>
+      `}).join('') + `
+        <button class="tag-btn flex-shrink-0 px-4 py-2 rounded-full border-2 border-gray-300 text-sm text-gray-600 transition-all" data-tag="custom">
+          <i class="fa fa-plus mr-1"></i>自定义
+        </button>
+      `;
+
+      document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tag = btn.dataset.tag;
+          
+          if (tag === 'custom') {
+            customTagInput.classList.toggle('hidden');
+            if (!customTagInput.classList.contains('hidden')) {
+              customTagText.focus();
+            }
+            return;
+          }
+
+          document.querySelectorAll('.tag-btn').forEach(b => {
+            b.classList.remove('active');
+            // 恢复默认样式
+            const tagData = b.dataset.tag;
+            if (tagData) {
+              const color = getTagColor(tagData);
+              b.style.color = color;
+              b.style.borderColor = color;
+              b.style.background = 'transparent';
+            }
+          });
+          
+          // 设置选中样式
+          const color = getTagColor(tag);
+          btn.style.background = color;
+          btn.style.color = 'white';
+          btn.style.borderColor = 'transparent';
+          btn.classList.add('active');
+          selectedTag = tag;
+        });
+      });
+    }
+
+    function renderTagManagement() {
+      const allTags = [...defaultTags, ...customTags];
+      
+      // 分离固定标签和其他标签
+      const pinnedTagsList = document.getElementById('pinnedTagsList');
+      const otherTagsList = document.getElementById('otherTagsList');
+      
+      // 渲染标签项的通用函数
+      function renderTagItem(tag, isPinned) {
+        const color = getTagColor(tag);
+        const isDefault = defaultTags.includes(tag);
+        return `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" draggable="true" data-tag="${tag}">
+            <div class="flex items-center gap-3">
+              <button class="${isPinned ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}" onclick="toggleTagPin('${tag}')">
+                <i class="fa fa-thumb-tack"></i>
+              </button>
+              <div class="flex items-center gap-2 flex-grow">
+                <span style="color: ${color};">${getTagIcon(tag)}</span>
+                <div class="flex items-center gap-2 flex-grow">
+                  <!-- 圆形颜色按钮 -->
+                  <button class="w-4 h-4 rounded-full mr-1 color-btn" data-tag="${tag}" style="background-color: ${color};"></button>
+                  <span class="text-sm tag-name-${tag}">${tag}</span>
+                  <input type="text" value="${tag}" class="hidden tag-input-${tag} px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary flex-grow">
+                  ${isDefault ? '<span class="text-xs text-gray-400">默认</span>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="text-blue-500 hover:text-blue-600 tag-edit-btn-${tag}" onclick="startRenameTag('${tag}')">
+                <i class="fa fa-pencil"></i>
+              </button>
+              <button class="hidden tag-save-btn-${tag} text-green-500 hover:text-green-600" onclick="saveRenameTag('${tag}')">
+                <i class="fa fa-check"></i>
+              </button>
+              <button class="hidden tag-cancel-btn-${tag} text-gray-500 hover:text-gray-600" onclick="cancelRenameTag('${tag}')">
+                <i class="fa fa-times"></i>
+              </button>
+              <button class="text-red-500 hover:text-red-600" onclick="deleteTag('${tag}')">
+                <i class="fa fa-trash"></i>
+              </button>
+              <button class="text-gray-400 hover:text-gray-600 ml-2 cursor-move">
+                <i class="fa fa-bars"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 渲染固定标签
+      pinnedTagsList.innerHTML = pinnedTags.map(tag => renderTagItem(tag, true)).join('') || '<p class="text-sm text-gray-400">暂无固定标签</p>';
+      
+      // 渲染其他标签
+      const otherTags = allTags.filter(tag => !pinnedTags.includes(tag));
+      otherTagsList.innerHTML = otherTags.map(tag => renderTagItem(tag, false)).join('');
+      
+      // 绑定拖拽功能
+      bindDragAndDrop();
+      
+      // 初始化颜色选择功能
+      initColorSelection();
+      
+      // 绑定标签选择功能
+      bindTagSelection();
+    }
+    
+    // 标签颜色管理
+    let currentSelectedTag = null;
+    let selectedTagElement = null;
+    
+    // 初始化颜色选择功能
+    function initColorSelection() {
+      // 预设颜色列表
+      const presetColors = document.querySelectorAll('#presetColors button');
+      // 选择提示
+      const selectedTagForColor = document.getElementById('selectedTagForColor');
+      
+      // 颜色选择
+      presetColors.forEach(button => {
+        // 先移除可能存在的事件监听器
+        button.onclick = null;
+        
+        button.addEventListener('click', () => {
+          if (!currentSelectedTag) {
+            showToast('请先选择标签');
+            return;
+          }
+          
+          // 获取颜色
+          const color = button.style.backgroundColor;
+          
+          // 转换颜色为统一格式（十六进制）
+          const hexColor = rgbToHex(color);
+          
+          // 设置标签颜色
+          setTagColor(currentSelectedTag, hexColor);
+          
+          // 重新渲染
+          renderTagManagement();
+          renderTags();
+          
+          showToast(`标签颜色已更新`);
+        });
+      });
+    }
+    
+    // 绑定标签选择功能
+    function bindTagSelection() {
+      // 标签元素
+      const tagElements = document.querySelectorAll('[draggable="true"]');
+      
+      // 标签选择
+      tagElements.forEach(element => {
+        // 先移除可能存在的事件监听器
+        element.onclick = null;
+        
+        element.addEventListener('click', () => {
+          const tag = element.dataset.tag;
+          selectTagForColor(tag, element);
+        });
+      });
+      
+      // 颜色按钮选择
+      const colorBtns = document.querySelectorAll('.color-btn');
+      colorBtns.forEach(button => {
+        // 先移除可能存在的事件监听器
+        button.onclick = null;
+        
+        button.addEventListener('click', (e) => {
+          // 阻止事件冒泡，避免触发标签元素的点击事件
+          e.stopPropagation();
+          const tag = button.dataset.tag;
+          const tagElement = button.closest('[draggable="true"]');
+          selectTagForColor(tag, tagElement);
+        });
+      });
+    }
+    
+    // 选择标签进行颜色设置
+    function selectTagForColor(tag, element) {
+      // 选择提示
+      const selectedTagForColor = document.getElementById('selectedTagForColor');
+      
+      // 移除之前的选中状态
+      if (selectedTagElement) {
+        selectedTagElement.classList.remove('ring-2', 'ring-primary');
+      }
+      
+      // 设置当前选中标签
+      selectedTagElement = element;
+      currentSelectedTag = tag;
+      selectedTagElement.classList.add('ring-2', 'ring-primary');
+      
+      // 更新提示文字
+      selectedTagForColor.textContent = `正在为 "${currentSelectedTag}" 设置颜色`;
+    }
+
+    // 开始重命名标签
+    function startRenameTag(tag) {
+      // 隐藏标签名称和编辑按钮
+      document.querySelector(`.tag-name-${tag}`).classList.add('hidden');
+      document.querySelector(`.tag-edit-btn-${tag}`).classList.add('hidden');
+      
+      // 显示输入框和保存/取消按钮
+      document.querySelector(`.tag-input-${tag}`).classList.remove('hidden');
+      document.querySelector(`.tag-save-btn-${tag}`).classList.remove('hidden');
+      document.querySelector(`.tag-cancel-btn-${tag}`).classList.remove('hidden');
+      
+      // 聚焦输入框
+      const input = document.querySelector(`.tag-input-${tag}`);
+      input.focus();
+      input.select();
+    }
+
+    // 保存标签重命名
+    function saveRenameTag(oldName) {
+      const input = document.querySelector(`.tag-input-${oldName}`);
+      const newName = input.value.trim();
+      
+      if (!newName) {
+        showToast('标签名称不能为空');
+        return;
+      }
+      
+      if (newName === oldName) {
+        // 名称未变化，直接取消
+        cancelRenameTag(oldName);
+        return;
+      }
+      
+      // 检查新名称是否已存在
+      const allTags = [...defaultTags, ...customTags];
+      if (allTags.includes(newName)) {
+        showToast('标签名称已存在');
+        return;
+      }
+      
+      // 执行重命名
+      renameTag(oldName, newName);
+      
+      // 恢复显示
+      cancelRenameTag(oldName);
+    }
+
+    // 取消标签重命名
+    function cancelRenameTag(tag) {
+      // 显示标签名称和编辑按钮
+      document.querySelector(`.tag-name-${tag}`).classList.remove('hidden');
+      document.querySelector(`.tag-edit-btn-${tag}`).classList.remove('hidden');
+      
+      // 隐藏输入框和保存/取消按钮
+      document.querySelector(`.tag-input-${tag}`).classList.add('hidden');
+      document.querySelector(`.tag-save-btn-${tag}`).classList.add('hidden');
+      document.querySelector(`.tag-cancel-btn-${tag}`).classList.add('hidden');
+    }
+
+    // 标签重命名逻辑
+    function renameTag(oldName, newName) {
+      // 更新默认标签
+      const defaultIndex = defaultTags.indexOf(oldName);
+      if (defaultIndex > -1) {
+        defaultTags[defaultIndex] = newName;
+      }
+      
+      // 更新自定义标签
+      const customIndex = customTags.indexOf(oldName);
+      if (customIndex > -1) {
+        customTags[customIndex] = newName;
+      }
+      
+      // 更新标签使用计数
+      if (tagUsageCount[oldName]) {
+        tagUsageCount[newName] = tagUsageCount[oldName];
+        delete tagUsageCount[oldName];
+      }
+      
+      // 更新标签颜色
+      if (tagColors[oldName]) {
+        tagColors[newName] = tagColors[oldName];
+        delete tagColors[oldName];
+      }
+      
+      // 更新固定标签
+      const pinnedIndex = pinnedTags.indexOf(oldName);
+      if (pinnedIndex > -1) {
+        pinnedTags[pinnedIndex] = newName;
+      }
+      
+      // 更新所有使用该标签的记录
+      records.forEach(record => {
+        if (record.tag === oldName) {
+          record.tag = newName;
+        }
+      });
+      
+      // 保存到localStorage
+      localStorage.setItem('customTags', JSON.stringify(customTags));
+      localStorage.setItem('tagUsageCount', JSON.stringify(tagUsageCount));
+      localStorage.setItem('tagColors', JSON.stringify(tagColors));
+      localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+      localStorage.setItem('expenseRecords', JSON.stringify(records));
+      
+      // 重新渲染
+      renderTagManagement();
+      renderTags();
+      updateAllRecords();
+      showToast('标签已重命名');
+    }
+
+    function addCustomTag(tagName) {
+      if (!customTags.includes(tagName)) {
+        customTags.push(tagName);
+        // 为新标签设置默认颜色
+        setTagColor(tagName, '#6366F1');
+        localStorage.setItem('customTags', JSON.stringify(customTags));
+        renderTags();
+      }
+    }
+
+    function updateTagUsage(tag) {
+      if (tag) {
+        tagUsageCount[tag] = (tagUsageCount[tag] || 0) + 1;
+        localStorage.setItem('tagUsageCount', JSON.stringify(tagUsageCount));
+        renderTags();
+      }
+    }
+
+    function addRecord() {
+      if (!isValidNumber(currentInput)) {
+        return;
+      }
+
+      const amount = parseFloat(currentInput);
+      const record = {
+        id: Date.now(),
+        amount: amount,
+        type: currentType,
+        tag: selectedTag,
+        date: new Date().toISOString()
+      };
+
+      records.unshift(record);
+      localStorage.setItem('expenseRecords', JSON.stringify(records));
+
+      updateTagUsage(selectedTag);
+
+      const typeText = currentType === 'expense' ? '支出' : '收入';
+      showToast(`${typeText} ¥${amount.toFixed(2)} 已记录`);
+
+      // 重置状态但保持键盘可用性
+      currentInput = '0';
+      selectedTag = null;
+      document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+      customTagInput.classList.add('hidden');
+      customTagText.value = '';
+
+      // 重新绑定所有键盘事件
+      updateCircleDisplay();
+      updateAllRecords();
+      bounceCircle();
+    }
+
+    function renderRecord(record) {
+      const date = new Date(record.date);
+      const timeStr = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+      const isExpense = record.type === 'expense';
+      const tagColor = getTagColor(record.tag);
+      
+      return `
+        <div class="record-swipe" data-id="${record.id}">
+          <div class="record-content flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background-color: ${tagColor};">
+                ${getTagIcon(record.tag)}
+              </div>
+              <div>
+                <p class="font-medium text-gray-800">${record.tag || '无标签'}</p>
+                <p class="text-xs text-gray-500">${dateStr} ${timeStr}</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <span class="font-bold ${isExpense ? 'text-expense' : 'text-income'}">${isExpense ? '-' : '+'}${formatMoney(record.amount)}</span>
+            </div>
+          </div>
+          <div class="record-delete">
+            <button class="delete-record text-white font-bold">删除</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 筛选条件
+    let currentFilters = {
+      year: 'all',
+      month: 'all',
+      tag: 'all'
+    };
+
+    // 初始化筛选控件
+    function initFilters() {
+      // 生成年份选项
+      const yearFilter = document.getElementById('yearFilter');
+      // 保留第一个"全部年份"选项，清除其他选项
+      while (yearFilter.options.length > 1) {
+        yearFilter.remove(1);
+      }
+      const years = [...new Set(records.map(record => new Date(record.date).getFullYear()))];
+      years.sort((a, b) => b - a);
+      
+      years.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+      });
+      
+      // 生成标签选项
+      const tagFilter = document.getElementById('tagFilter');
+      // 保留第一个"全部标签"选项，清除其他选项
+      while (tagFilter.options.length > 1) {
+        tagFilter.remove(1);
+      }
+      const allTags = [...new Set(records.map(record => record.tag))].filter(tag => tag);
+      allTags.sort();
+      
+      allTags.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        tagFilter.appendChild(option);
+      });
+      
+      // 添加筛选事件监听
+      yearFilter.addEventListener('change', (e) => {
+        currentFilters.year = e.target.value;
+        updateAllRecords();
+      });
+      
+      document.getElementById('monthFilter').addEventListener('change', (e) => {
+        currentFilters.month = e.target.value;
+        updateAllRecords();
+      });
+      
+      tagFilter.addEventListener('change', (e) => {
+        currentFilters.tag = e.target.value;
+        updateAllRecords();
+      });
+      
+      document.getElementById('clearFilterBtn').addEventListener('click', () => {
+        // 重置筛选条件
+        currentFilters = {
+          year: 'all',
+          month: 'all',
+          tag: 'all'
+        };
+        
+        // 重置筛选控件
+        document.getElementById('yearFilter').value = 'all';
+        document.getElementById('monthFilter').value = 'all';
+        document.getElementById('tagFilter').value = 'all';
+        
+        // 更新记录列表
+        updateAllRecords();
+      });
+    }
+
+    // 应用筛选条件
+    function applyFilters(recordsList) {
+      return recordsList.filter(record => {
+        const recordDate = new Date(record.date);
+        const recordYear = recordDate.getFullYear().toString();
+        const recordMonth = recordDate.getMonth().toString();
+        const recordTag = record.tag;
+        
+        // 年份筛选
+        if (currentFilters.year !== 'all' && recordYear !== currentFilters.year) {
+          return false;
+        }
+        
+        // 月份筛选
+        if (currentFilters.month !== 'all' && recordMonth !== currentFilters.month) {
+          return false;
+        }
+        
+        // 标签筛选
+        if (currentFilters.tag !== 'all' && recordTag !== currentFilters.tag) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+
+    // 更新记录合计
+    function updateRecordsSummary(filteredRecords) {
+      // 计算支出总计
+      const expenseTotal = filteredRecords
+        .filter(record => record.type === 'expense')
+        .reduce((sum, record) => sum + parseFloat(record.amount), 0);
+      
+      // 计算收入总计
+      const incomeTotal = filteredRecords
+        .filter(record => record.type === 'income')
+        .reduce((sum, record) => sum + parseFloat(record.amount), 0);
+      
+      // 计算总合计
+      const total = incomeTotal - expenseTotal;
+      
+      // 更新显示
+      document.getElementById('expenseSummary').textContent = formatMoney(expenseTotal);
+      document.getElementById('incomeSummary').textContent = formatMoney(incomeTotal);
+      document.getElementById('totalSummary').textContent = formatMoney(total);
+      
+      // 更新总合计的颜色
+      const totalSummaryEl = document.getElementById('totalSummary');
+      if (total > 0) {
+        totalSummaryEl.className = 'font-bold text-green-500';
+      } else if (total < 0) {
+        totalSummaryEl.className = 'font-bold text-expense';
+      } else {
+        totalSummaryEl.className = 'font-bold text-primary';
+      }
+    }
+
+    function updateAllRecords() {
+      // 应用筛选条件
+      const filteredRecords = applyFilters(records);
+      
+      // 更新合计显示
+      updateRecordsSummary(filteredRecords);
+      
+      if (filteredRecords.length === 0) {
+        allRecordsList.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">暂无记录</p>';
+        return;
+      }
+
+      allRecordsList.innerHTML = filteredRecords.map(record => renderRecord(record)).join('');
+
+      // 绑定左滑删除功能
+      document.querySelectorAll('.record-swipe').forEach(swipeEl => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        const contentEl = swipeEl.querySelector('.record-content');
+        const deleteBtn = swipeEl.querySelector('.delete-record');
+        const recordId = swipeEl.dataset.id;
+
+        swipeEl.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          isDragging = true;
+        });
+
+        swipeEl.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          currentX = e.touches[0].clientX;
+          const diffX = currentX - startX;
+          
+          if (diffX < 0) {
+            // 向左滑
+            const translateX = Math.max(-80, diffX);
+            contentEl.style.transform = `translateX(${translateX}px)`;
+          }
+        });
+
+        swipeEl.addEventListener('touchend', () => {
+          if (!isDragging) return;
+          isDragging = false;
+          const diffX = currentX - startX;
+          
+          if (diffX < -40) {
+            // 滑出一半以上，显示删除按钮
+            contentEl.style.transform = 'translateX(-80px)';
+          } else {
+            // 滑出不足，恢复原位
+            contentEl.style.transform = 'translateX(0)';
+          }
+        });
+
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('确定要删除这条记录吗？')) {
+            records = records.filter(record => record.id !== parseInt(recordId));
+            localStorage.setItem('expenseRecords', JSON.stringify(records));
+            updateTotalAmount();
+            updateAllRecords();
+            // 重新初始化筛选控件
+            initFilters();
+          }
+        });
+
+        // 点击记录内容，恢复原位
+        contentEl.addEventListener('click', () => {
+          contentEl.style.transform = 'translateX(0)';
+        });
+      });
+    }
+
+    function switchTab(tab) {
+      if (tab === 'home') {
+        homePage.classList.remove('hidden');
+        recordsPage.classList.add('hidden');
+        homeTab.classList.add('text-primary', 'border-t-2', 'border-primary');
+        homeTab.classList.remove('text-gray-500');
+        recordsTab.classList.remove('text-primary', 'border-t-2', 'border-primary');
+        recordsTab.classList.add('text-gray-500');
+        updateTotalAmount();
+      } else {
+        homePage.classList.add('hidden');
+        recordsPage.classList.remove('hidden');
+        recordsTab.classList.add('text-primary', 'border-t-2', 'border-primary');
+        recordsTab.classList.remove('text-gray-500');
+        homeTab.classList.remove('text-primary', 'border-t-2', 'border-primary');
+        homeTab.classList.add('text-gray-500');
+        // 重新初始化筛选控件
+        initFilters();
+        // 更新记录列表
+        updateAllRecords();
+      }
+    }
+
+    // 拖拽排序功能
+    function bindDragAndDrop() {
+      const draggables = document.querySelectorAll('[draggable="true"]');
+      const dropzones = document.querySelectorAll('#pinnedTagsList, #otherTagsList');
+      let draggedElement = null;
+
+      draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+          draggedElement = draggable;
+          setTimeout(() => draggable.classList.add('opacity-50'), 0);
+        });
+
+        draggable.addEventListener('dragend', () => {
+          draggable.classList.remove('opacity-50');
+          draggedElement = null;
+        });
+      });
+
+      dropzones.forEach(dropzone => {
+        dropzone.addEventListener('dragover', e => {
+          e.preventDefault();
+          const afterElement = getDragAfterElement(dropzone, e.clientY);
+          const draggable = document.querySelector('.opacity-50');
+          if (afterElement == null) {
+            dropzone.appendChild(draggable);
+          } else {
+            dropzone.insertBefore(draggable, afterElement);
+          }
+        });
+
+        dropzone.addEventListener('drop', e => {
+          e.preventDefault();
+          // 更新标签排序
+          updateTagOrder();
+        });
+      });
+
+      function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('[draggable="true"]:not(.opacity-50)')];
+
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+      }
+
+      function updateTagOrder() {
+        // 更新固定标签顺序
+        const newPinnedTags = [...document.querySelectorAll('#pinnedTagsList [draggable="true"]')]
+          .map(el => el.dataset.tag);
+        pinnedTags = newPinnedTags;
+        
+        // 更新其他标签顺序
+        const newOtherTags = [...document.querySelectorAll('#otherTagsList [draggable="true"]')]
+          .map(el => el.dataset.tag);
+        
+        // 分离默认标签和自定义标签
+        const newDefaultTags = [];
+        const newCustomTags = [];
+        
+        newOtherTags.forEach(tag => {
+          if (defaultTags.includes(tag)) {
+            newDefaultTags.push(tag);
+          } else {
+            newCustomTags.push(tag);
+          }
+        });
+        
+        // 更新默认标签和自定义标签顺序
+        defaultTags.length = 0;
+        defaultTags.push(...newDefaultTags);
+        
+        customTags.length = 0;
+        customTags.push(...newCustomTags);
+        
+        // 保存到localStorage
+        localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+        localStorage.setItem('customTags', JSON.stringify(customTags));
+        
+        // 重新渲染标签列表
+        renderTags();
+      }
+    }
+    
+    // 重新绑定键盘事件函数
+    function bindKeyboardEvents() {
+      document.querySelectorAll('.keypad-btn').forEach(btn => {
+        btn.removeEventListener('click', handleKeyPress);
+        btn.addEventListener('click', handleKeyPress);
+      });
+    }
+
+    function handleKeyPress(e) {
+      const btn = e.target.closest('.keypad-btn');
+      if (!btn) return;
+      
+      const key = btn.dataset.key;
+      
+      if (key === 'delete') {
+        // 确保 currentInput 是字符串
+        if (typeof currentInput !== 'string') {
+          currentInput = '0';
+        }
+        if (currentInput.length > 1) {
+          currentInput = currentInput.slice(0, -1);
+        } else {
+          currentInput = '0';
+        }
+      } else if (key === '.') {
+        // 确保 currentInput 是字符串
+        if (typeof currentInput !== 'string') {
+          currentInput = '0';
+        }
+        if (!currentInput.includes('.')) {
+          currentInput += '.';
+        }
+      } else {
+        // 确保 currentInput 是字符串
+        if (typeof currentInput !== 'string') {
+          currentInput = '0';
+        }
+        if (currentInput === '0' && key !== '.') {
+          currentInput = key;
+        } else {
+          currentInput += key;
+        }
+      }
+      
+      updateCircleDisplay();
+    }
+
+    // 初始化事件监听
+    function initEventListeners() {
+      // 时间周期按钮
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentPeriod = btn.dataset.period;
+          // 确保updateTotalAmount被调用
+          console.log('切换到周期:', currentPeriod);
+          updateTotalAmount();
+        });
+      });
+
+      // 收/支切换按钮
+      totalTypeBtn.addEventListener('click', toggleDisplayType);
+
+      // 自定义标签输入
+      customTagText.addEventListener('input', () => {
+        if (customTagText.value.trim()) {
+          selectedTag = customTagText.value.trim();
+          document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+          document.querySelector('[data-tag="custom"]').classList.add('active');
+        }
+      });
+
+      customTagText.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const tagName = customTagText.value.trim();
+          if (tagName) {
+            addCustomTag(tagName);
+            customTagInput.classList.add('hidden');
+            customTagText.value = '';
+            selectedTag = tagName;
+            document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+            const customBtn = document.querySelector(`[data-tag="${tagName}"]`);
+            if (customBtn) {
+              customBtn.classList.add('active');
+            }
+          }
+        }
+      });
+
+      // 收入/支出/清除按钮
+      expenseBtn.addEventListener('click', () => {
+        currentType = 'expense';
+        addRecord();
+      });
+
+      incomeBtn.addEventListener('click', () => {
+        currentType = 'income';
+        addRecord();
+      });
+
+      // 标签页切换
+      homeTab.addEventListener('click', () => switchTab('home'));
+      recordsTab.addEventListener('click', () => switchTab('records'));
+
+      // 设置按钮
+      document.getElementById('settingsBtn').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.remove('hidden');
+      });
+
+      document.getElementById('closeSettings').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.add('hidden');
+      });
+
+      document.getElementById('settingsModal').addEventListener('click', (e) => {
+        if (e.target.id === 'settingsModal') {
+          document.getElementById('settingsModal').classList.add('hidden');
+        }
+      });
+
+      // 标签管理按钮
+      document.getElementById('tagManageBtn').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.add('hidden');
+        renderTagManagement();
+        document.getElementById('tagManageModal').classList.remove('hidden');
+      });
+
+      // 关闭标签管理
+      document.getElementById('closeTagManage').addEventListener('click', () => {
+        document.getElementById('tagManageModal').classList.add('hidden');
+      });
+
+      document.getElementById('tagManageModal').addEventListener('click', (e) => {
+        if (e.target.id === 'tagManageModal') {
+          document.getElementById('tagManageModal').classList.add('hidden');
+        }
+      });
+
+      // 添加新标签按钮
+      document.getElementById('addNewTagBtn').addEventListener('click', () => {
+        const tagName = document.getElementById('newTagName').value.trim();
+        addNewTag(tagName);
+      });
+
+      // 清空数据按钮
+      document.getElementById('clearDataBtn').addEventListener('click', () => {
+        if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+          if (confirm('请再次确认，所有数据将被永久删除！')) {
+            // 重置默认标签
+            defaultTags.length = 0;
+            defaultTags.push('吃喝', '玩乐', '购物', '交通', '医疗', '教育', '其他');
+            
+            records = [];
+            customTags = [];
+            tagUsageCount = {};
+            tagColors = {};
+            pinnedTags = [];
+            localStorage.removeItem('expenseRecords');
+            localStorage.removeItem('customTags');
+            localStorage.removeItem('tagUsageCount');
+            localStorage.removeItem('tagColors');
+            localStorage.removeItem('pinnedTags');
+            updateTotalAmount();
+            updateAllRecords();
+            renderTags();
+            document.getElementById('settingsModal').classList.add('hidden');
+            showToast('数据已清空');
+          }
+        }
+      });
+
+      // 导出数据按钮
+      document.getElementById('exportDataBtn').addEventListener('click', () => {
+        const dataStr = JSON.stringify(records, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `记账数据_${new Date().toLocaleDateString('zh-CN')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById('settingsModal').classList.add('hidden');
+      });
+
+      // 导入数据按钮
+      document.getElementById('importDataBtn').addEventListener('click', () => {
+        document.getElementById('importDataFile').click();
+      });
+
+      // 文件选择事件
+      document.getElementById('importDataFile').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            if (Array.isArray(importedData)) {
+              // 询问用户是否覆盖现有数据
+              if (records.length > 0) {
+                if (confirm('检测到现有数据，是否覆盖？\n\n- 点击确定：覆盖现有数据\n- 点击取消：合并到现有数据')) {
+                  // 覆盖现有数据
+                  records = importedData;
+                } else {
+                  // 合并导入的数据
+                  records = [...records, ...importedData];
+                }
+              } else {
+                // 没有现有数据，直接导入
+                records = importedData;
+              }
+              localStorage.setItem('expenseRecords', JSON.stringify(records));
+              updateTotalAmount();
+              updateAllRecords();
+              document.getElementById('settingsModal').classList.add('hidden');
+              showToast('数据导入成功');
+            } else {
+              showToast('导入的数据格式不正确');
+            }
+          } catch (error) {
+            showToast('导入失败：' + error.message);
+          }
+        };
+        reader.readAsText(file);
+        // 清空文件选择
+        e.target.value = '';
+      });
+
+      // 绑定键盘事件
+      bindKeyboardEvents();
+    }
+
+    // 初始化应用
+    function init() {
+      renderTags();
+      updateTotalAmount();
+      updateAllRecords();
+      initEventListeners();
+    }
+
+    // 启动应用
+    init();
+    
+    // 注册Service Worker，实现PWA功能
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(error => {
+            console.log('ServiceWorker registration failed: ', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
