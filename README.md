@@ -1,2 +1,0 @@
-# expenseApp
-Quick accounting app
