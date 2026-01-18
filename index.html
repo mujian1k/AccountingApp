@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#6366F1">
+  <meta name="theme-color" content="#20a1fc">
   <meta name="description" content="简单易用的记账助手">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -22,13 +22,13 @@
       theme: {
         extend: {
           colors: {
-            primary: '#6366F1',
-            secondary: '#8B5CF6',
+            primary: '#20a1fc',
+            secondary: '#1d9bf0',
             accent: '#EC4899',
-            expense: '#F59E0B',
-            income: '#3B82F6',
+            expense: '#20a1fc',
+            income: '#f2b60e',
             clear: '#9CA3AF',
-            incomeTotal: '#10B981'
+            incomeTotal: '#f2b60e'
           },
           animation: {
             'bounce-circle': 'bounce 0.5s ease-in-out',
@@ -43,7 +43,7 @@
       border-color: transparent;
     }
     .period-btn.active {
-      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      background: linear-gradient(135deg, #20a1fc, #1d9bf0);
       color: white;
     }
     .keypad-btn:active {
@@ -57,13 +57,13 @@
       scrollbar-width: none;
     }
     .circle-input {
-      background: linear-gradient(135deg, #F59E0B, #D97706);
+      background: linear-gradient(135deg, #6fdd08, #12af04);
     }
     .circle-normal-expense {
-      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      background: linear-gradient(135deg, #29c2ff, #0085dd);
     }
     .circle-normal-income {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, #fac107, #e49d06);
     }
     .toast {
       position: fixed;
@@ -126,6 +126,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col shadow-xl relative">
+    <div class="bg-gradient-to-r from-primary to-secondary h-[20px]"></div>
     <header class="bg-gradient-to-r from-primary to-secondary p-4 text-white">
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-bold">记账助手</h1>
@@ -173,13 +174,13 @@
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="4">4</button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="5">5</button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="6">6</button>
-          <button id="incomeBtn" class="keypad-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center">
+          <button id="incomeBtn" class="keypad-btn bg-income hover:bg-income/90 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center">
             收入
           </button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="1">1</button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="2">2</button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all" data-key="3">3</button>
-          <button id="expenseBtn" class="keypad-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center row-span-2">
+          <button id="expenseBtn" class="keypad-btn bg-primary hover:bg-secondary text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center row-span-2">
             支出
           </button>
           <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl text-xl transition-all col-span-2" data-key="0">0</button>
@@ -237,7 +238,7 @@
         </div>
         <div class="text-center flex-1">
           <div class="text-xs text-gray-500">总合计</div>
-          <div id="totalSummary" class="font-bold text-primary">¥0.00</div>
+          <div id="totalSummary" class="font-bold text-expense">¥0.00</div>
         </div>
       </div>
       
@@ -246,7 +247,7 @@
       </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 max-w-md mx-auto">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 max-w-md mx-auto z-10">
       <div class="flex">
         <button id="homeTab" class="flex-1 py-3 text-center text-primary border-t-2 border-primary">
           <i class="fa fa-home text-xl"></i>
@@ -294,6 +295,52 @@
             导入
           </button>
         </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-700">使用指南</span>
+          <button id="showGuideBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            查看
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用指南模态窗口 -->
+  <div id="guideModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[80vh] flex flex-col">
+      <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-800">使用指南</h3>
+        <button id="closeGuide" class="text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-grow space-y-3">
+        <div>
+          <h4 class="font-medium text-primary mb-1">记录支出/收入</h4>
+          <p class="text-sm text-gray-700">输入金额后点击标签完成记录。</p>
+        </div>
+        <div>
+          <h4 class="font-medium text-primary mb-1">设置->标签管理</h4>
+          <p class="text-sm text-gray-700">在设置中点击"标签管理"，可以添加、删除、重命名标签或更改标签颜色。选择标签后点击上移/下移按钮调整固定标签顺序。点击“钉住”按钮固定标签在前。</p>
+        </div>
+        <div>
+          <h4 class="font-medium text-primary mb-1">记录->筛选功能</h4>
+          <p class="text-sm text-gray-700">在记录页可以按月、年、标签查看记录。</p>
+        </div>
+                <div>
+          <h4 class="font-medium text-primary mb-1">记录->删改功能</h4>
+          <p class="text-sm text-gray-700">左滑删除单条记录。点击标签左侧图标更改标签。</p>
+        </div>
+        <div>
+          <h4 class="font-medium text-primary mb-1">设置->导入导出</h4>
+          <p class="text-sm text-gray-700">在设置中可以导出或导入数据，也可以清空所有数据。默认路径：emulated/Download/WebToApp</p>
+        </div>
+        <div>
+          <h4 class="font-medium text-primary mb-1">其他</h4>
+          <p class="text-sm text-gray-700">问题反馈：516664030@qq.com</p>
+          <p class="text-sm text-gray-700">版本：1.0.0</p>
+          <p class="text-sm text-gray-700">作者：关2147</p>
+        </div>
       </div>
     </div>
   </div>
@@ -308,7 +355,17 @@
       </div>
       <div class="p-4 space-y-4 overflow-y-auto flex-grow">
         <div class="mb-4">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">固定标签</h4>
+          <div class="flex justify-between items-center mb-2">
+            <h4 class="text-sm font-medium text-gray-700">固定标签</h4>
+            <div class="flex gap-1">
+              <button id="moveUpBtn" class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors text-xs">
+                <i class="fa fa-arrow-up"></i> 上移
+              </button>
+              <button id="moveDownBtn" class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors text-xs">
+                <i class="fa fa-arrow-down"></i> 下移
+              </button>
+            </div>
+          </div>
           <div id="pinnedTagsList" class="space-y-2">
             <!-- 固定标签列表 -->
           </div>
@@ -700,7 +757,7 @@
         const color = getTagColor(tag);
         const isDefault = defaultTags.includes(tag);
         return `
-          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" draggable="true" data-tag="${tag}">
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-tag="${tag}">
             <div class="flex items-center gap-3">
               <button class="${isPinned ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}" onclick="toggleTagPin('${tag}')">
                 <i class="fa fa-thumb-tack"></i>
@@ -729,9 +786,6 @@
               <button class="text-red-500 hover:text-red-600" onclick="deleteTag('${tag}')">
                 <i class="fa fa-trash"></i>
               </button>
-              <button class="text-gray-400 hover:text-gray-600 ml-2 cursor-move">
-                <i class="fa fa-bars"></i>
-              </button>
             </div>
           </div>
         `;
@@ -744,19 +798,102 @@
       const otherTags = allTags.filter(tag => !pinnedTags.includes(tag));
       otherTagsList.innerHTML = otherTags.map(tag => renderTagItem(tag, false)).join('');
       
-      // 绑定拖拽功能
-      bindDragAndDrop();
+
       
       // 初始化颜色选择功能
       initColorSelection();
       
       // 绑定标签选择功能
       bindTagSelection();
+      
+      // 更新上下移按钮的状态
+      updateOrderButtonsState();
     }
     
     // 标签颜色管理
     let currentSelectedTag = null;
     let selectedTagElement = null;
+    
+    // 更新上下移按钮的状态
+    function updateOrderButtonsState() {
+      const moveUpBtn = document.getElementById('moveUpBtn');
+      const moveDownBtn = document.getElementById('moveDownBtn');
+      
+      if (!moveUpBtn || !moveDownBtn) return;
+      
+      // 禁用未选择标签时的按钮
+      const hasSelectedTag = !!currentSelectedTag;
+      moveUpBtn.disabled = !hasSelectedTag;
+      moveDownBtn.disabled = !hasSelectedTag;
+    }
+    
+    // 初始化标签顺序调整按钮功能
+    function initTagOrderButtons() {
+      const moveUpBtn = document.getElementById('moveUpBtn');
+      const moveDownBtn = document.getElementById('moveDownBtn');
+      
+      if (!moveUpBtn || !moveDownBtn) return;
+      
+      // 上移按钮点击事件
+      moveUpBtn.addEventListener('click', () => {
+        if (!currentSelectedTag) return;
+        
+        // 只处理固定标签的顺序调整
+        if (!pinnedTags.includes(currentSelectedTag)) {
+          showToast('只能调整固定标签的顺序');
+          return;
+        }
+        
+        const currentIndex = pinnedTags.indexOf(currentSelectedTag);
+        if (currentIndex > 0) {
+          // 交换位置
+          const temp = pinnedTags[currentIndex];
+          pinnedTags[currentIndex] = pinnedTags[currentIndex - 1];
+          pinnedTags[currentIndex - 1] = temp;
+          
+          // 更新存储
+          localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+          
+          // 重新渲染
+          renderTagManagement();
+          renderTags();
+          showToast('标签已上移');
+        }
+      });
+      
+      // 下移按钮点击事件
+      moveDownBtn.addEventListener('click', () => {
+        if (!currentSelectedTag) return;
+        
+        // 只处理固定标签的顺序调整
+        if (!pinnedTags.includes(currentSelectedTag)) {
+          showToast('只能调整固定标签的顺序');
+          return;
+        }
+        
+        const currentIndex = pinnedTags.indexOf(currentSelectedTag);
+        if (currentIndex < pinnedTags.length - 1) {
+          // 交换位置
+          const temp = pinnedTags[currentIndex];
+          pinnedTags[currentIndex] = pinnedTags[currentIndex + 1];
+          pinnedTags[currentIndex + 1] = temp;
+          
+          // 更新存储
+          localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
+          
+          // 重新渲染
+          renderTagManagement();
+          renderTags();
+          showToast('标签已下移');
+        }
+      });
+    }
+    
+    // 初始化时只绑定一次事件监听器
+    // 这样可以避免重复绑定事件监听器的问题
+    document.addEventListener('DOMContentLoaded', () => {
+      initTagOrderButtons();
+    });
     
     // 初始化颜色选择功能
     function initColorSelection() {
@@ -797,7 +934,7 @@
     // 绑定标签选择功能
     function bindTagSelection() {
       // 标签元素
-      const tagElements = document.querySelectorAll('[draggable="true"]');
+      const tagElements = document.querySelectorAll('[data-tag]');
       
       // 标签选择
       tagElements.forEach(element => {
@@ -820,7 +957,7 @@
           // 阻止事件冒泡，避免触发标签元素的点击事件
           e.stopPropagation();
           const tag = button.dataset.tag;
-          const tagElement = button.closest('[draggable="true"]');
+          const tagElement = button.closest('[data-tag]');
           selectTagForColor(tag, tagElement);
         });
       });
@@ -843,6 +980,9 @@
       
       // 更新提示文字
       selectedTagForColor.textContent = `正在为 "${currentSelectedTag}" 设置颜色`;
+      
+      // 更新上下移按钮的状态
+      updateOrderButtonsState();
     }
 
     // 开始重命名标签
@@ -994,6 +1134,9 @@
 
       updateTagUsage(selectedTag);
 
+      // 更新首页显示的总计类型为当前记录类型
+      displayType = currentType;
+
       const typeText = currentType === 'expense' ? '支出' : '收入';
       showToast(`${typeText} ¥${amount.toFixed(2)} 已记录`);
 
@@ -1021,7 +1164,7 @@
         <div class="record-swipe" data-id="${record.id}">
           <div class="record-content flex justify-between items-center p-3 bg-gray-50 rounded-lg">
             <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background-color: ${tagColor};">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-white record-tag-icon" style="background-color: ${tagColor};">
                 ${getTagIcon(record.tag)}
               </div>
               <div>
@@ -1165,7 +1308,7 @@
       // 更新总合计的颜色
       const totalSummaryEl = document.getElementById('totalSummary');
       if (total > 0) {
-        totalSummaryEl.className = 'font-bold text-green-500';
+        totalSummaryEl.className = 'font-bold text-income';
       } else if (total < 0) {
         totalSummaryEl.className = 'font-bold text-expense';
       } else {
@@ -1242,6 +1385,68 @@
         contentEl.addEventListener('click', () => {
           contentEl.style.transform = 'translateX(0)';
         });
+
+        // 点击标签颜色图标，更改记录标签
+        const tagIconEl = contentEl.querySelector('.record-tag-icon');
+        tagIconEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const newRecordId = parseInt(recordId);
+          const record = records.find(r => r.id === newRecordId);
+          if (!record) return;
+
+          // 创建标签选择弹窗
+          const tagSelectionModal = document.createElement('div');
+          tagSelectionModal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+          tagSelectionModal.innerHTML = `
+            <div class="bg-white rounded-2xl max-w-md w-full">
+              <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">选择标签</h3>
+                <button class="text-gray-500 hover:text-gray-700" id="closeTagSelection">
+                  <i class="fa fa-times text-xl"></i>
+                </button>
+              </div>
+              <div class="p-4 overflow-y-auto max-h-80">
+                <div class="flex flex-wrap gap-2" id="tagSelectionContainer"></div>
+              </div>
+            </div>
+          `;
+
+          document.body.appendChild(tagSelectionModal);
+
+          // 渲染标签选择按钮
+          const tagSelectionContainer = tagSelectionModal.querySelector('#tagSelectionContainer');
+          const sortedTags = getSortedTags();
+          tagSelectionContainer.innerHTML = sortedTags.map(tag => {
+            const color = getTagColor(tag);
+            return `
+              <button class="tag-btn flex-shrink-0 px-4 py-2 rounded-full border-2 border-gray-300 text-sm text-gray-600 transition-all" data-tag="${tag}" style="color: ${color}; border-color: ${color};">
+                ${getTagIcon(tag)}${tag}
+              </button>
+            `;
+          }).join('');
+
+          // 绑定标签选择事件
+          tagSelectionContainer.querySelectorAll('.tag-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const newTag = btn.dataset.tag;
+              record.tag = newTag;
+              localStorage.setItem('expenseRecords', JSON.stringify(records));
+              updateAllRecords();
+              document.body.removeChild(tagSelectionModal);
+            });
+          });
+
+          // 绑定关闭事件
+          tagSelectionModal.querySelector('#closeTagSelection').addEventListener('click', () => {
+            document.body.removeChild(tagSelectionModal);
+          });
+
+          tagSelectionModal.addEventListener('click', (e) => {
+            if (e.target === tagSelectionModal) {
+              document.body.removeChild(tagSelectionModal);
+            }
+          });
+        });
       });
     }
 
@@ -1268,95 +1473,7 @@
       }
     }
 
-    // 拖拽排序功能
-    function bindDragAndDrop() {
-      const draggables = document.querySelectorAll('[draggable="true"]');
-      const dropzones = document.querySelectorAll('#pinnedTagsList, #otherTagsList');
-      let draggedElement = null;
 
-      draggables.forEach(draggable => {
-        draggable.addEventListener('dragstart', () => {
-          draggedElement = draggable;
-          setTimeout(() => draggable.classList.add('opacity-50'), 0);
-        });
-
-        draggable.addEventListener('dragend', () => {
-          draggable.classList.remove('opacity-50');
-          draggedElement = null;
-        });
-      });
-
-      dropzones.forEach(dropzone => {
-        dropzone.addEventListener('dragover', e => {
-          e.preventDefault();
-          const afterElement = getDragAfterElement(dropzone, e.clientY);
-          const draggable = document.querySelector('.opacity-50');
-          if (afterElement == null) {
-            dropzone.appendChild(draggable);
-          } else {
-            dropzone.insertBefore(draggable, afterElement);
-          }
-        });
-
-        dropzone.addEventListener('drop', e => {
-          e.preventDefault();
-          // 更新标签排序
-          updateTagOrder();
-        });
-      });
-
-      function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('[draggable="true"]:not(.opacity-50)')];
-
-        return draggableElements.reduce((closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - box.top - box.height / 2;
-
-          if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-          } else {
-            return closest;
-          }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-      }
-
-      function updateTagOrder() {
-        // 更新固定标签顺序
-        const newPinnedTags = [...document.querySelectorAll('#pinnedTagsList [draggable="true"]')]
-          .map(el => el.dataset.tag);
-        pinnedTags = newPinnedTags;
-        
-        // 更新其他标签顺序
-        const newOtherTags = [...document.querySelectorAll('#otherTagsList [draggable="true"]')]
-          .map(el => el.dataset.tag);
-        
-        // 分离默认标签和自定义标签
-        const newDefaultTags = [];
-        const newCustomTags = [];
-        
-        newOtherTags.forEach(tag => {
-          if (defaultTags.includes(tag)) {
-            newDefaultTags.push(tag);
-          } else {
-            newCustomTags.push(tag);
-          }
-        });
-        
-        // 更新默认标签和自定义标签顺序
-        defaultTags.length = 0;
-        defaultTags.push(...newDefaultTags);
-        
-        customTags.length = 0;
-        customTags.push(...newCustomTags);
-        
-        // 保存到localStorage
-        localStorage.setItem('pinnedTags', JSON.stringify(pinnedTags));
-        localStorage.setItem('customTags', JSON.stringify(customTags));
-        
-        // 重新渲染标签列表
-        renderTags();
-      }
-    }
     
     // 重新绑定键盘事件函数
     function bindKeyboardEvents() {
@@ -1475,6 +1592,22 @@
       document.getElementById('settingsModal').addEventListener('click', (e) => {
         if (e.target.id === 'settingsModal') {
           document.getElementById('settingsModal').classList.add('hidden');
+        }
+      });
+
+      // 使用指南按钮
+      document.getElementById('showGuideBtn').addEventListener('click', () => {
+        document.getElementById('guideModal').classList.remove('hidden');
+        document.getElementById('settingsModal').classList.add('hidden');
+      });
+
+      document.getElementById('closeGuide').addEventListener('click', () => {
+        document.getElementById('guideModal').classList.add('hidden');
+      });
+
+      document.getElementById('guideModal').addEventListener('click', (e) => {
+        if (e.target.id === 'guideModal') {
+          document.getElementById('guideModal').classList.add('hidden');
         }
       });
 
